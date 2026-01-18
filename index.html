@@ -1,162 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Will you get Six-Seven?</title>
+    <meta charset="UTF-8">
+    <title>Will you get Six-Seven?</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive;
+            margin: 40px;
+            max-width: 900px;
+        }
+        input, button {
+            margin: 5px 0;
+            padding: 6px;
+            font-size: 14px;
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            text-align: center;
+        }
+        th {
+            background: #f0f0f0;
+        }
 
-<style>
-body {
-    font-family: 'Comic Sans MS', cursive;
-    margin: 40px;
-    max-width: 900px;
-}
-input, button {
-    margin: 5px 0;
-    padding: 6px;
-    font-size: 14px;
-}
-table {
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-th, td {
-    border: 1px solid #ccc;
-    padding: 6px 10px;
-    text-align: center;
-}
-th {
-    background: #f0f0f0;
-}
+        /* Celebration elements */
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            z-index: 1000;
+        }
 
-#confettiCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    width: 100vw;
-    height: 100vh;
-    display: none;
-    z-index: 1000;
-}
-
-#celebrationGif {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: none;
-    z-index: 1001;
-    width: 90vw;
-    max-width: 600px;
-}
-</style>
+        #celebrationGif {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 1001;
+        }
+    </style>
 </head>
-
 <body>
 
 <h1>Will you get Six-Seven?</h1>
 
 <label>
-Number of dice per roll:
-<input type="number" id="numDice" min="1" value="42">
-</label><br>
+    Number of dice per roll (total # of Bobbleheads):
+    <input type="number" id="numDice" min="1" value="42">
+</label>
+<br>
 
 <label>
-Number of iterations:
-<input type="number" id="numIterations" min="1" value="1">
-</label><br>
+    Number of iterations (# of Luck Bobbleheads being activated):
+    <input type="number" id="numIterations" min="1" value="1">
+</label>
+<br>
 
-<button id="runBtn">Run Simulation</button>
+<button onclick="runSimulation()">Run Simulation</button>
 
 <h2>Results</h2>
+
 <div id="summary"></div>
 
 <table id="resultsTable" style="display:none;">
-<thead>
-<tr>
-<th>Iteration</th>
-<th>Total 6s</th>
-<th>Total even #s</th>
-</tr>
-</thead>
-<tbody></tbody>
+    <thead>
+        <tr>
+            <th>Iteration</th>
+            <th>Total 6s</th>
+            <th>Total even #s</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
 </table>
 
 <canvas id="confettiCanvas"></canvas>
 
-<!-- PRE-RENDERED TENOR GIF (critical) -->
-<div id="celebrationGif">
+<div id="celebrationGif" style="display:none;">
     <div class="tenor-gif-embed"
          data-postid="9140868"
          data-share-method="host"
          data-aspect-ratio="1.78"
-         data-width="100%">
+         data-width="300px">
     </div>
 </div>
 
 <script async src="https://tenor.com/embed.js"></script>
 
 <script>
-/* ---------------- Audio (mobile-safe) ---------------- */
-
-const airhorn = new Audio("https://actions.google.com/sounds/v1/alarms/air_horn.ogg");
-const applause = new Audio("https://actions.google.com/sounds/v1/human_voices/applause.ogg");
-
-airhorn.playsInline = true;
-applause.playsInline = true;
-applause.loop = true;
-
-/* iOS unlock trick */
-function unlockAudio() {
-    airhorn.muted = true;
-    applause.muted = true;
-
-    airhorn.play().then(() => {
-        airhorn.pause();
-        airhorn.muted = false;
-    }).catch(()=>{});
-
-    applause.play().then(() => {
-        applause.pause();
-        applause.muted = false;
-    }).catch(()=>{});
+function binomialCoefficient(n, k) {
+    if (k < 0 || k > n) return 0;
+    if (k === 0 || k === n) return 1;
+    k = Math.min(k, n - k);
+    let result = 1;
+    for (let i = 1; i <= k; i++) {
+        result *= (n - k + i);
+        result /= i;
+    }
+    return result;
 }
 
-/* ---------------- Celebration ---------------- */
+function theoreticalProbabilityExactlySevenSixes(n) {
+    const k = 7;
+    const p = 1 / 6;
+    return binomialCoefficient(n, k) *
+           Math.pow(p, k) *
+           Math.pow(1 - p, n - k);
+}
 
-let confettiId = null;
+/* ---------------- Celebration Logic ---------------- */
 
 function playCelebrationSounds() {
+    const airhorn = document.getElementById("airhorn");
+    const applause = document.getElementById("applause");
+
     airhorn.currentTime = 0;
     applause.currentTime = 0;
 
-    airhorn.play().catch(()=>{});
-    applause.play().catch(()=>{});
-
-    setTimeout(() => {
-        airhorn.pause();
-        airhorn.currentTime = 0;
-    }, 3000);
+    airhorn.play();
+    applause.play();
 }
 
 function stopCelebrationSounds() {
+    const airhorn = document.getElementById("airhorn");
+    const applause = document.getElementById("applause");
+
     airhorn.pause();
     applause.pause();
     airhorn.currentTime = 0;
     applause.currentTime = 0;
 }
+    
+let confettiAnimationId = null;
 
 function launchCelebration() {
     playCelebrationSounds();
-
-    document.getElementById("celebrationGif").style.display = "block";
-
     const canvas = document.getElementById("confettiCanvas");
     const ctx = canvas.getContext("2d");
-
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     canvas.style.display = "block";
+    document.getElementById("celebrationGif").style.display = "block";
 
     const pieces = Array.from({ length: 200 }, () => ({
         x: Math.random() * canvas.width,
@@ -176,30 +168,34 @@ function launchCelebration() {
             p.y += p.dy;
             if (p.y > canvas.height) p.y = -10;
         }
-        confettiId = requestAnimationFrame(animate);
+        confettiAnimationId = requestAnimationFrame(animate);
     }
 
     animate();
+
+    //setTimeout(clearCelebration, 5000);
 }
 
 function clearCelebration() {
-    cancelAnimationFrame(confettiId);
+    cancelAnimationFrame(confettiAnimationId);
     document.getElementById("confettiCanvas").style.display = "none";
     document.getElementById("celebrationGif").style.display = "none";
     stopCelebrationSounds();
 }
 
+    
 /* ---------------- Simulation ---------------- */
 
 function runSimulation() {
     clearCelebration();
 
-    const nDice = +numDice.value;
-    const iterations = +numIterations.value;
+    const nDice = parseInt(document.getElementById("numDice").value);
+    const iterations = parseInt(document.getElementById("numIterations").value);
 
-    let success = false;
     const tbody = document.querySelector("#resultsTable tbody");
     tbody.innerHTML = "";
+
+    let countExactlySeven = 0;
 
     for (let i = 0; i < iterations; i++) {
         let sixes = 0;
@@ -211,14 +207,20 @@ function runSimulation() {
             if (roll % 2 === 0) evens++;
         }
 
-        if (sixes === 7) success = true;
+        if (sixes === 7) countExactlySeven++;
 
-        tbody.innerHTML += `<tr><td>${i+1}</td><td>${sixes}</td><td>${evens}</td></tr>`;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${i + 1}</td>
+            <td>${sixes}</td>
+            <td>${evens}</td>
+        `;
+        tbody.appendChild(row);
     }
 
-    resultsTable.style.display = "table";
+    document.getElementById("resultsTable").style.display = "table";
 
-        const empiricalProb = countExactlySeven / iterations;
+    const empiricalProb = countExactlySeven / iterations;
     const theoreticalSingle = theoreticalProbabilityExactlySevenSixes(nDice);
     const theoreticalAtLeastOnce =
         1 - Math.pow(1 - theoreticalSingle, iterations);
@@ -234,16 +236,19 @@ function runSimulation() {
         ${theoreticalAtLeastOnce.toFixed(6)}</p>
     `;
 
-    if (success) launchCelebration();
+    if (countExactlySeven > 0) {
+        launchCelebration();
+    }
 }
-
-/* ---------------- Button wiring ---------------- */
-
-document.getElementById("runBtn").addEventListener("click", () => {
-    unlockAudio();      // MUST happen first
-    runSimulation();
-});
 </script>
+
+<audio id="airhorn" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/air_horn.ogg" type="audio/ogg">
+</audio>
+
+<audio id="applause" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/human_voices/applause.ogg" type="audio/ogg">
+</audio>
 
 </body>
 </html>
