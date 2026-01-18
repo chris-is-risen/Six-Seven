@@ -26,6 +26,27 @@
         th {
             background: #f0f0f0;
         }
+
+        /* Celebration elements */
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            z-index: 1000;
+        }
+
+        #celebrationGif {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 1001;
+        }
     </style>
 </head>
 <body>
@@ -61,6 +82,13 @@
     <tbody></tbody>
 </table>
 
+<canvas id="confettiCanvas"></canvas>
+
+<div id="celebrationGif">
+    <!-- Replace src with any gif you like -->
+    <img src="https://media.giphy.com/media/111ebonMs90YLu/giphy.gif" width="300">
+</div>
+
 <script>
 function binomialCoefficient(n, k) {
     if (k < 0 || k > n) return 0;
@@ -82,7 +110,55 @@ function theoreticalProbabilityExactlySevenSixes(n) {
            Math.pow(1 - p, n - k);
 }
 
+/* ---------------- Celebration Logic ---------------- */
+
+let confettiAnimationId = null;
+
+function launchCelebration() {
+    const canvas = document.getElementById("confettiCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.display = "block";
+    document.getElementById("celebrationGif").style.display = "block";
+
+    const pieces = Array.from({ length: 200 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        r: Math.random() * 6 + 4,
+        dy: Math.random() * 3 + 2,
+        color: `hsl(${Math.random() * 360}, 100%, 50%)`
+    }));
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const p of pieces) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            p.y += p.dy;
+            if (p.y > canvas.height) p.y = -10;
+        }
+        confettiAnimationId = requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    setTimeout(clearCelebration, 5000);
+}
+
+function clearCelebration() {
+    cancelAnimationFrame(confettiAnimationId);
+    document.getElementById("confettiCanvas").style.display = "none";
+    document.getElementById("celebrationGif").style.display = "none";
+}
+
+/* ---------------- Simulation ---------------- */
+
 function runSimulation() {
+    clearCelebration();
+
     const nDice = parseInt(document.getElementById("numDice").value);
     const iterations = parseInt(document.getElementById("numIterations").value);
 
@@ -115,25 +191,24 @@ function runSimulation() {
     document.getElementById("resultsTable").style.display = "table";
 
     const empiricalProb = countExactlySeven / iterations;
-
     const theoreticalSingle = theoreticalProbabilityExactlySevenSixes(nDice);
-
     const theoreticalAtLeastOnce =
         1 - Math.pow(1 - theoreticalSingle, iterations);
 
     document.getElementById("summary").innerHTML = `
         <p><strong>Dice per roll:</strong> ${nDice}</p>
         <p><strong>Iterations:</strong> ${iterations}</p>
-
         <p><strong>Empirical P(exactly seven 6s at least once):</strong>
         ${empiricalProb.toFixed(6)}</p>
-
         <p><strong>Theoretical P(exactly seven 6s in a single iteration):</strong>
         ${theoreticalSingle.toFixed(6)}</p>
-
         <p><strong>Theoretical P(exactly seven 6s at least once across all iterations):</strong>
         ${theoreticalAtLeastOnce.toFixed(6)}</p>
     `;
+
+    if (countExactlySeven > 0) {
+        launchCelebration();
+    }
 }
 </script>
 
