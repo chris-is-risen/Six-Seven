@@ -84,10 +84,16 @@
 
 <canvas id="confettiCanvas"></canvas>
 
-<div id="celebrationGif">
-    <!-- Replace src with any gif you like -->
-    <img src="https://media.giphy.com/media/111ebonMs90YLu/giphy.gif" width="300">
+<div id="celebrationGif" style="display:none;">
+    <div class="tenor-gif-embed"
+         data-postid="9140868"
+         data-share-method="host"
+         data-aspect-ratio="1.78"
+         data-width="300px">
+    </div>
 </div>
+
+<script async src="https://tenor.com/embed.js"></script>
 
 <script>
 function binomialCoefficient(n, k) {
@@ -112,9 +118,31 @@ function theoreticalProbabilityExactlySevenSixes(n) {
 
 /* ---------------- Celebration Logic ---------------- */
 
+function playCelebrationSounds() {
+    const airhorn = document.getElementById("airhorn");
+    const applause = document.getElementById("applause");
+
+    airhorn.currentTime = 0;
+    applause.currentTime = 0;
+
+    airhorn.play();
+    applause.play();
+}
+
+function stopCelebrationSounds() {
+    const airhorn = document.getElementById("airhorn");
+    const applause = document.getElementById("applause");
+
+    airhorn.pause();
+    applause.pause();
+    airhorn.currentTime = 0;
+    applause.currentTime = 0;
+}
+    
 let confettiAnimationId = null;
 
 function launchCelebration() {
+    playCelebrationSounds();
     const canvas = document.getElementById("confettiCanvas");
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
@@ -145,15 +173,17 @@ function launchCelebration() {
 
     animate();
 
-    setTimeout(clearCelebration, 5000);
+    //setTimeout(clearCelebration, 5000);
 }
 
 function clearCelebration() {
     cancelAnimationFrame(confettiAnimationId);
     document.getElementById("confettiCanvas").style.display = "none";
     document.getElementById("celebrationGif").style.display = "none";
+    stopCelebrationSounds();
 }
 
+    
 /* ---------------- Simulation ---------------- */
 
 function runSimulation() {
@@ -211,6 +241,14 @@ function runSimulation() {
     }
 }
 </script>
+
+<audio id="airhorn" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/air_horn.ogg" type="audio/ogg">
+</audio>
+
+<audio id="applause" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/human_voices/applause.ogg" type="audio/ogg">
+</audio>
 
 </body>
 </html>
