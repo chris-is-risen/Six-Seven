@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Will you get Six-Seven?</title>
+
 <style>
 body {
     font-family: 'Comic Sans MS', cursive;
@@ -50,6 +51,7 @@ th {
 }
 </style>
 </head>
+
 <body>
 
 <h1>Will you get Six-Seven?</h1>
@@ -64,7 +66,7 @@ Number of iterations:
 <input type="number" id="numIterations" min="1" value="1">
 </label><br>
 
-<button onclick="runSimulation()">Run Simulation</button>
+<button id="runBtn">Run Simulation</button>
 
 <h2>Results</h2>
 <div id="summary"></div>
@@ -82,68 +84,20 @@ Number of iterations:
 
 <canvas id="confettiCanvas"></canvas>
 
-<div id="celebrationGif"></div>
+<!-- PRE-RENDERED TENOR GIF (critical) -->
+<div id="celebrationGif">
+    <div class="tenor-gif-embed"
+         data-postid="9140868"
+         data-share-method="host"
+         data-aspect-ratio="1.78"
+         data-width="100%">
+    </div>
+</div>
 
 <script async src="https://tenor.com/embed.js"></script>
 
 <script>
-/* ---------------- Probability ---------------- */
-
-function binomialCoefficient(n, k) {
-    if (k < 0 || k > n) return 0;
-    if (k === 0 || k === n) return 1;
-    k = Math.min(k, n - k);
-    let r = 1;
-    for (let i = 1; i <= k; i++) {
-        r *= (n - k + i);
-        r /= i;
-    }
-    return r;
-}
-
-function theoreticalProbabilityExactlySevenSixes(n) {
-    return binomialCoefficient(n, 7) * Math.pow(1/6, 7) * Math.pow(5/6, n - 7);
-}
-
-/* ---------------- Tenor GIF system ---------------- */
-
-/*
-Add future Tenor GIFs here.
-Index 0 is the one currently used.
-*/
-const tenorGifs = [
-    {
-        postid: "9140868",
-        aspect: "1.78"
-    }
-];
-
-function showTenorGif(index = 0) {
-    const container = document.getElementById("celebrationGif");
-
-    /* Force re-render so animation restarts */
-    container.innerHTML = "";
-
-    const gif = tenorGifs[index];
-
-    container.innerHTML = `
-        <div class="tenor-gif-embed"
-             data-postid="${gif.postid}"
-             data-share-method="host"
-             data-aspect-ratio="${gif.aspect}"
-             data-width="100%">
-        </div>
-    `;
-
-    container.style.display = "block";
-
-    /* Reinitialize Tenor after DOM change */
-    if (window.Tenor && Tenor.Embed) {
-        Tenor.Embed.load();
-    }
-}
-
-/* ---------------- Audio ---------------- */
+/* ---------------- Audio (mobile-safe) ---------------- */
 
 const airhorn = new Audio("https://actions.google.com/sounds/v1/alarms/air_horn.ogg");
 const applause = new Audio("https://actions.google.com/sounds/v1/human_voices/applause.ogg");
@@ -151,6 +105,26 @@ const applause = new Audio("https://actions.google.com/sounds/v1/human_voices/ap
 airhorn.playsInline = true;
 applause.playsInline = true;
 applause.loop = true;
+
+/* iOS unlock trick */
+function unlockAudio() {
+    airhorn.muted = true;
+    applause.muted = true;
+
+    airhorn.play().then(() => {
+        airhorn.pause();
+        airhorn.muted = false;
+    }).catch(()=>{});
+
+    applause.play().then(() => {
+        applause.pause();
+        applause.muted = false;
+    }).catch(()=>{});
+}
+
+/* ---------------- Celebration ---------------- */
+
+let confettiId = null;
 
 function playCelebrationSounds() {
     airhorn.currentTime = 0;
@@ -172,13 +146,10 @@ function stopCelebrationSounds() {
     applause.currentTime = 0;
 }
 
-/* ---------------- Confetti ---------------- */
-
-let confettiAnimationId = null;
-
 function launchCelebration() {
     playCelebrationSounds();
-    showTenorGif(0);
+
+    document.getElementById("celebrationGif").style.display = "block";
 
     const canvas = document.getElementById("confettiCanvas");
     const ctx = canvas.getContext("2d");
@@ -205,14 +176,14 @@ function launchCelebration() {
             p.y += p.dy;
             if (p.y > canvas.height) p.y = -10;
         }
-        confettiAnimationId = requestAnimationFrame(animate);
+        confettiId = requestAnimationFrame(animate);
     }
 
     animate();
 }
 
 function clearCelebration() {
-    cancelAnimationFrame(confettiAnimationId);
+    cancelAnimationFrame(confettiId);
     document.getElementById("confettiCanvas").style.display = "none";
     document.getElementById("celebrationGif").style.display = "none";
     stopCelebrationSounds();
@@ -223,13 +194,12 @@ function clearCelebration() {
 function runSimulation() {
     clearCelebration();
 
-    const nDice = parseInt(document.getElementById("numDice").value);
-    const iterations = parseInt(document.getElementById("numIterations").value);
+    const nDice = +numDice.value;
+    const iterations = +numIterations.value;
 
+    let success = false;
     const tbody = document.querySelector("#resultsTable tbody");
     tbody.innerHTML = "";
-
-    let countExactlySeven = 0;
 
     for (let i = 0; i < iterations; i++) {
         let sixes = 0;
@@ -241,30 +211,22 @@ function runSimulation() {
             if (roll % 2 === 0) evens++;
         }
 
-        if (sixes === 7) countExactlySeven++;
+        if (sixes === 7) success = true;
 
         tbody.innerHTML += `<tr><td>${i+1}</td><td>${sixes}</td><td>${evens}</td></tr>`;
     }
 
-    document.getElementById("resultsTable").style.display = "table";
+    resultsTable.style.display = "table";
 
-    const empiricalProb = countExactlySeven / iterations;
-    const theoreticalSingle = theoreticalProbabilityExactlySevenSixes(nDice);
-    const theoreticalAtLeastOnce =
-        1 - Math.pow(1 - theoreticalSingle, iterations);
-
-    document.getElementById("summary").innerHTML = `
-        <p><strong>Dice per roll:</strong> ${nDice}</p>
-        <p><strong>Iterations:</strong> ${iterations}</p>
-        <p><strong>Empirical P(at least one success):</strong> ${empiricalProb.toFixed(6)}</p>
-        <p><strong>Theoretical P(single roll):</strong> ${theoreticalSingle.toFixed(6)}</p>
-        <p><strong>Theoretical P(at least once):</strong> ${theoreticalAtLeastOnce.toFixed(6)}</p>
-    `;
-
-    if (countExactlySeven > 0) {
-        launchCelebration();
-    }
+    if (success) launchCelebration();
 }
+
+/* ---------------- Button wiring ---------------- */
+
+document.getElementById("runBtn").addEventListener("click", () => {
+    unlockAudio();      // MUST happen first
+    runSimulation();
+});
 </script>
 
 </body>
