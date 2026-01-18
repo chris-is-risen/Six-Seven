@@ -1,37 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <title>Will you get Six-Seven?</title>
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comic+Relief&display=swap" rel="stylesheet">
     
-    <meta charset="UTF-8">
-    <title>Will you get Six-Seven?</title>
     <style>
+        /* ---------------- Global ---------------- */
         body {
-            font-family: 'Comic Sans MS', 'Comic Relief', ;
-            margin: 40px;
-            max-width: 900px;
-        }
-        input, button {
-            margin: 5px 0;
-            padding: 6px;
-            font-size: 14px;
-        }
-        table {
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 6px 10px;
-            text-align: center;
-        }
-        th {
-            background: #f0f0f0;
+            font-family: 'Comic Sans MS', 'Comic Relief', sans-serif;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
         }
 
-        /* Celebration elements */
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+        }
+
+        h1, h2 {
+            color: #111827;
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin: 6px 0;
+        }
+
+        /* ---------------- Inputs & Buttons ---------------- */
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100px;
+            transition: all 0.2s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79,70,229,0.2);
+        }
+
+        button {
+            background-color: #4f46e5;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* ---------------- Table ---------------- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 12px 15px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+        }
+
+        tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        /* ---------------- Summary ---------------- */
+        #summary {
+            background-color: #f3f4f6;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        /* ---------------- Celebration GIF ---------------- */
+        #celebrationGif {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+            display: none;
+            cursor: grab;
+        }
+
+        #celebrationGif.dragging {
+            cursor: grabbing;
+        }
+
+        /* ---------------- Confetti Canvas ---------------- */
         #confettiCanvas {
             position: fixed;
             top: 0;
@@ -43,52 +139,67 @@
             z-index: 1000;
         }
 
-        #celebrationGif {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: none;
-            z-index: 1001;
+        /* ---------------- Responsive ---------------- */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            input[type="number"] {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            table th, table td {
+                padding: 8px 6px;
+            }
         }
     </style>
 </head>
 <body>
 
-<h1>Will you get Six-Seven?</h1>
+<div class="container">
+    <h1>Will you get Six-Seven?</h1>
 
-<label>
-    Number of dice per roll (total # of Bobbleheads):
-    <input type="number" id="numDice" min="1" value="42">
-</label>
-<br>
+    <label>
+        Number of dice per roll (total # of Bobbleheads):
+        <input type="number" id="numDice" min="1" value="42">
+    </label>
 
-<label>
-    Number of iterations (# of Luck Bobbleheads being activated):
-    <input type="number" id="numIterations" min="1" value="1">
-</label>
-<br>
+    <label>
+        Number of iterations (# of Luck Bobbleheads being activated):
+        <input type="number" id="numIterations" min="1" value="1">
+    </label>
 
-<button onclick="runSimulation()">Run Simulation</button>
+    <button onclick="runSimulation()">Run Simulation</button>
 
+    <h2>Results</h2>
+    <div id="summary"></div>
 
-<h2>Results</h2>
-<div id="summary"></div>
-
-<table id="resultsTable" style="display:none;">
-    <thead>
-        <tr>
-            <th>Iteration</th>
-            <th>Total 6s</th>
-            <th>Total even #s</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+    <table id="resultsTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>Iteration</th>
+                <th>Total 6s</th>
+                <th>Total even #s</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <canvas id="confettiCanvas"></canvas>
 
-<div id="celebrationGif" style="display:none;">
+<div id="celebrationGif">
     <div class="tenor-gif-embed"
          data-postid="9140868"
          data-share-method="host"
@@ -99,7 +210,38 @@
 
 <script async src="https://tenor.com/embed.js"></script>
 
+<audio id="airhorn" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/air_horn.ogg" type="audio/ogg">
+</audio>
+
+<audio id="applause" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/human_voices/applause.ogg" type="audio/ogg">
+</audio>
+
 <script>
+/* ---------------- Draggable GIF ---------------- */
+const gif = document.getElementById("celebrationGif");
+let offsetX, offsetY, isDragging = false;
+
+gif.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    gif.classList.add('dragging');
+    offsetX = e.clientX - gif.getBoundingClientRect().left;
+    offsetY = e.clientY - gif.getBoundingClientRect().top;
+});
+
+window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    gif.style.left = `${e.clientX - offsetX}px`;
+    gif.style.top = `${e.clientY - offsetY}px`;
+});
+
+window.addEventListener('mouseup', () => {
+    isDragging = false;
+    gif.classList.remove('dragging');
+});
+
+/* ---------------- Binomial ---------------- */
 function binomialCoefficient(n, k) {
     if (k < 0 || k > n) return 0;
     if (k === 0 || k === n) return 1;
@@ -121,14 +263,11 @@ function theoreticalProbabilityExactlySevenSixes(n) {
 }
 
 /* ---------------- Celebration Logic ---------------- */
-
 function playCelebrationSounds() {
     const airhorn = document.getElementById("airhorn");
     const applause = document.getElementById("applause");
-
     airhorn.currentTime = 0;
     applause.currentTime = 0;
-
     airhorn.play();
     applause.play();
 }
@@ -136,13 +275,12 @@ function playCelebrationSounds() {
 function stopCelebrationSounds() {
     const airhorn = document.getElementById("airhorn");
     const applause = document.getElementById("applause");
-
     airhorn.pause();
     applause.pause();
     airhorn.currentTime = 0;
     applause.currentTime = 0;
 }
-    
+
 let confettiAnimationId = null;
 
 function launchCelebration() {
@@ -152,7 +290,7 @@ function launchCelebration() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     canvas.style.display = "block";
-    document.getElementById("celebrationGif").style.display = "block";
+    gif.style.display = "block";
 
     const pieces = Array.from({ length: 200 }, () => ({
         x: Math.random() * canvas.width,
@@ -176,20 +314,16 @@ function launchCelebration() {
     }
 
     animate();
-
-    //setTimeout(clearCelebration, 5000);
 }
 
 function clearCelebration() {
     cancelAnimationFrame(confettiAnimationId);
     document.getElementById("confettiCanvas").style.display = "none";
-    document.getElementById("celebrationGif").style.display = "none";
+    gif.style.display = "none";
     stopCelebrationSounds();
 }
 
-    
 /* ---------------- Simulation ---------------- */
-
 function runSimulation() {
     clearCelebration();
 
@@ -245,14 +379,6 @@ function runSimulation() {
     }
 }
 </script>
-
-<audio id="airhorn" preload="auto">
-    <source src="https://actions.google.com/sounds/v1/alarms/air_horn.ogg" type="audio/ogg">
-</audio>
-
-<audio id="applause" preload="auto">
-    <source src="https://actions.google.com/sounds/v1/human_voices/applause.ogg" type="audio/ogg">
-</audio>
 
 </body>
 </html>
