@@ -218,6 +218,22 @@ function runSimulation() {
 
     resultsTable.style.display = "table";
 
+        const empiricalProb = countExactlySeven / iterations;
+    const theoreticalSingle = theoreticalProbabilityExactlySevenSixes(nDice);
+    const theoreticalAtLeastOnce =
+        1 - Math.pow(1 - theoreticalSingle, iterations);
+
+    document.getElementById("summary").innerHTML = `
+        <p><strong>Dice per roll:</strong> ${nDice}</p>
+        <p><strong>Iterations:</strong> ${iterations}</p>
+        <p><strong>Empirical P(exactly seven 6s at least once):</strong>
+        ${empiricalProb.toFixed(6)}</p>
+        <p><strong>Theoretical P(exactly seven 6s in a single iteration):</strong>
+        ${theoreticalSingle.toFixed(6)}</p>
+        <p><strong>Theoretical P(exactly seven 6s at least once across all iterations):</strong>
+        ${theoreticalAtLeastOnce.toFixed(6)}</p>
+    `;
+
     if (success) launchCelebration();
 }
 
