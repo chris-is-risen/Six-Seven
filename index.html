@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dice Statistics Simulator</title>
+    <title>Will you get Six-Seven?</title>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: comic-sans;
             margin: 40px;
             max-width: 900px;
         }
@@ -33,14 +33,14 @@
 <h1>Six-Sided Dice Statistics</h1>
 
 <label>
-    Number of dice per roll:
+    Number of dice per roll (total # of Bobbleheads):
     <input type="number" id="numDice" min="1" value="42">
 </label>
 <br>
 
 <label>
-    Number of iterations:
-    <input type="number" id="numIterations" min="1" value="10000">
+    Number of iterations (# of Luck Bobbleheads being activated):
+    <input type="number" id="numIterations" min="1" value="1">
 </label>
 <br>
 
@@ -54,8 +54,8 @@
     <thead>
         <tr>
             <th>Iteration</th>
-            <th># of 6s</th>
-            <th># of Evens</th>
+            <th>Total 6s</th>
+            <th>Total even #s</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -115,13 +115,24 @@ function runSimulation() {
     document.getElementById("resultsTable").style.display = "table";
 
     const empiricalProb = countExactlySeven / iterations;
-    const theoreticalProb = theoreticalProbabilityExactlySevenSixes(nDice);
+
+    const theoreticalSingle = theoreticalProbabilityExactlySevenSixes(nDice);
+
+    const theoreticalAtLeastOnce =
+        1 - Math.pow(1 - theoreticalSingle, iterations);
 
     document.getElementById("summary").innerHTML = `
         <p><strong>Dice per roll:</strong> ${nDice}</p>
         <p><strong>Iterations:</strong> ${iterations}</p>
-        <p><strong>Empirical P(exactly seven 6s):</strong> ${empiricalProb.toFixed(6)}</p>
-        <p><strong>Theoretical P(exactly seven 6s):</strong> ${theoreticalProb.toFixed(6)}</p>
+
+        <p><strong>Empirical P(exactly seven 6s at least once):</strong>
+        ${empiricalProb.toFixed(6)}</p>
+
+        <p><strong>Theoretical P(exactly seven 6s in a single iteration):</strong>
+        ${theoreticalSingle.toFixed(6)}</p>
+
+        <p><strong>Theoretical P(exactly seven 6s at least once across all iterations):</strong>
+        ${theoreticalAtLeastOnce.toFixed(6)}</p>
     `;
 }
 </script>
