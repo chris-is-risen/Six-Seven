@@ -1,154 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Will you get Six-Seven?</title>
-    <style>
-        body {
-            font-family: 'Comic Sans MS', cursive;
-            margin: 40px;
-            max-width: 900px;
-        }
-        input, button {
-            margin: 5px 0;
-            padding: 6px;
-            font-size: 14px;
-        }
-        table {
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 6px 10px;
-            text-align: center;
-        }
-        th {
-            background: #f0f0f0;
-        }
+<meta charset="UTF-8">
+<title>Will you get Six-Seven?</title>
+<style>
+body {
+    font-family: 'Comic Sans MS', cursive;
+    margin: 40px;
+    max-width: 900px;
+}
+input, button {
+    margin: 5px 0;
+    padding: 6px;
+    font-size: 14px;
+}
+table {
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    text-align: center;
+}
+th {
+    background: #f0f0f0;
+}
 
-        /* Celebration elements */
-        #confettiCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            width: 100vw;
-            height: 100vh;
-            display: none;
-            z-index: 1000;
-        }
+#confettiCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    z-index: 1000;
+}
 
-        #celebrationGif {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: none;
-            z-index: 1001;
-        }
-    </style>
+#celebrationGif {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    z-index: 1001;
+    width: 90vw;
+    max-width: 600px;
+}
+</style>
 </head>
 <body>
 
 <h1>Will you get Six-Seven?</h1>
 
 <label>
-    Number of dice per roll (total # of Bobbleheads):
-    <input type="number" id="numDice" min="1" value="42">
-</label>
-<br>
+Number of dice per roll:
+<input type="number" id="numDice" min="1" value="42">
+</label><br>
 
 <label>
-    Number of iterations (# of Luck Bobbleheads being activated):
-    <input type="number" id="numIterations" min="1" value="1">
-</label>
-<br>
+Number of iterations:
+<input type="number" id="numIterations" min="1" value="1">
+</label><br>
 
 <button onclick="runSimulation()">Run Simulation</button>
 
 <h2>Results</h2>
-
 <div id="summary"></div>
 
 <table id="resultsTable" style="display:none;">
-    <thead>
-        <tr>
-            <th>Iteration</th>
-            <th>Total 6s</th>
-            <th>Total even #s</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
+<thead>
+<tr>
+<th>Iteration</th>
+<th>Total 6s</th>
+<th>Total even #s</th>
+</tr>
+</thead>
+<tbody></tbody>
 </table>
 
 <canvas id="confettiCanvas"></canvas>
 
-<div id="celebrationGif" style="display:none;">
-    <div class="tenor-gif-embed"
-         data-postid="9140868"
-         data-share-method="host"
-         data-aspect-ratio="1.78"
-         data-width="300px">
-    </div>
-</div>
+<div id="celebrationGif"></div>
 
 <script async src="https://tenor.com/embed.js"></script>
 
 <script>
+/* ---------------- Probability ---------------- */
+
 function binomialCoefficient(n, k) {
     if (k < 0 || k > n) return 0;
     if (k === 0 || k === n) return 1;
     k = Math.min(k, n - k);
-    let result = 1;
+    let r = 1;
     for (let i = 1; i <= k; i++) {
-        result *= (n - k + i);
-        result /= i;
+        r *= (n - k + i);
+        r /= i;
     }
-    return result;
+    return r;
 }
 
 function theoreticalProbabilityExactlySevenSixes(n) {
-    const k = 7;
-    const p = 1 / 6;
-    return binomialCoefficient(n, k) *
-           Math.pow(p, k) *
-           Math.pow(1 - p, n - k);
+    return binomialCoefficient(n, 7) * Math.pow(1/6, 7) * Math.pow(5/6, n - 7);
 }
 
-/* ---------------- Celebration Logic ---------------- */
+/* ---------------- Tenor GIF system ---------------- */
+
+/*
+Add future Tenor GIFs here.
+Index 0 is the one currently used.
+*/
+const tenorGifs = [
+    {
+        postid: "9140868",
+        aspect: "1.78"
+    }
+];
+
+function showTenorGif(index = 0) {
+    const container = document.getElementById("celebrationGif");
+
+    /* Force re-render so animation restarts */
+    container.innerHTML = "";
+
+    const gif = tenorGifs[index];
+
+    container.innerHTML = `
+        <div class="tenor-gif-embed"
+             data-postid="${gif.postid}"
+             data-share-method="host"
+             data-aspect-ratio="${gif.aspect}"
+             data-width="100%">
+        </div>
+    `;
+
+    container.style.display = "block";
+
+    /* Reinitialize Tenor after DOM change */
+    if (window.Tenor && Tenor.Embed) {
+        Tenor.Embed.load();
+    }
+}
+
+/* ---------------- Audio ---------------- */
+
+const airhorn = new Audio("https://actions.google.com/sounds/v1/alarms/air_horn.ogg");
+const applause = new Audio("https://actions.google.com/sounds/v1/human_voices/applause.ogg");
+
+airhorn.playsInline = true;
+applause.playsInline = true;
+applause.loop = true;
 
 function playCelebrationSounds() {
-    const airhorn = document.getElementById("airhorn");
-    const applause = document.getElementById("applause");
-
     airhorn.currentTime = 0;
     applause.currentTime = 0;
 
-    airhorn.play();
-    applause.play();
+    airhorn.play().catch(()=>{});
+    applause.play().catch(()=>{});
+
+    setTimeout(() => {
+        airhorn.pause();
+        airhorn.currentTime = 0;
+    }, 3000);
 }
 
 function stopCelebrationSounds() {
-    const airhorn = document.getElementById("airhorn");
-    const applause = document.getElementById("applause");
-
     airhorn.pause();
     applause.pause();
     airhorn.currentTime = 0;
     applause.currentTime = 0;
 }
-    
+
+/* ---------------- Confetti ---------------- */
+
 let confettiAnimationId = null;
 
 function launchCelebration() {
     playCelebrationSounds();
+    showTenorGif(0);
+
     const canvas = document.getElementById("confettiCanvas");
     const ctx = canvas.getContext("2d");
+
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     canvas.style.display = "block";
-    document.getElementById("celebrationGif").style.display = "block";
 
     const pieces = Array.from({ length: 200 }, () => ({
         x: Math.random() * canvas.width,
@@ -172,8 +209,6 @@ function launchCelebration() {
     }
 
     animate();
-
-    //setTimeout(clearCelebration, 5000);
 }
 
 function clearCelebration() {
@@ -183,7 +218,6 @@ function clearCelebration() {
     stopCelebrationSounds();
 }
 
-    
 /* ---------------- Simulation ---------------- */
 
 function runSimulation() {
@@ -209,13 +243,7 @@ function runSimulation() {
 
         if (sixes === 7) countExactlySeven++;
 
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${i + 1}</td>
-            <td>${sixes}</td>
-            <td>${evens}</td>
-        `;
-        tbody.appendChild(row);
+        tbody.innerHTML += `<tr><td>${i+1}</td><td>${sixes}</td><td>${evens}</td></tr>`;
     }
 
     document.getElementById("resultsTable").style.display = "table";
@@ -228,12 +256,9 @@ function runSimulation() {
     document.getElementById("summary").innerHTML = `
         <p><strong>Dice per roll:</strong> ${nDice}</p>
         <p><strong>Iterations:</strong> ${iterations}</p>
-        <p><strong>Empirical P(exactly seven 6s at least once):</strong>
-        ${empiricalProb.toFixed(6)}</p>
-        <p><strong>Theoretical P(exactly seven 6s in a single iteration):</strong>
-        ${theoreticalSingle.toFixed(6)}</p>
-        <p><strong>Theoretical P(exactly seven 6s at least once across all iterations):</strong>
-        ${theoreticalAtLeastOnce.toFixed(6)}</p>
+        <p><strong>Empirical P(at least one success):</strong> ${empiricalProb.toFixed(6)}</p>
+        <p><strong>Theoretical P(single roll):</strong> ${theoreticalSingle.toFixed(6)}</p>
+        <p><strong>Theoretical P(at least once):</strong> ${theoreticalAtLeastOnce.toFixed(6)}</p>
     `;
 
     if (countExactlySeven > 0) {
@@ -241,14 +266,6 @@ function runSimulation() {
     }
 }
 </script>
-
-<audio id="airhorn" preload="auto">
-    <source src="https://actions.google.com/sounds/v1/alarms/air_horn.ogg" type="audio/ogg">
-</audio>
-
-<audio id="applause" preload="auto">
-    <source src="https://actions.google.com/sounds/v1/human_voices/applause.ogg" type="audio/ogg">
-</audio>
 
 </body>
 </html>
