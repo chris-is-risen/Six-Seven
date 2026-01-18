@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dice Statistics Simulator</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 40px;
+            max-width: 900px;
+        }
+        input, button {
+            margin: 5px 0;
+            padding: 6px;
+            font-size: 14px;
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            text-align: center;
+        }
+        th {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Six-Sided Dice Statistics</h1>
+
+<label>
+    Number of dice per roll:
+    <input type="number" id="numDice" min="1" value="42">
+</label>
+<br>
+
+<label>
+    Number of iterations:
+    <input type="number" id="numIterations" min="1" value="10000">
+</label>
+<br>
+
+<button onclick="runSimulation()">Run Simulation</button>
+
+<h2>Results</h2>
+
+<div id="summary"></div>
+
+<table id="resultsTable" style="display:none;">
+    <thead>
+        <tr>
+            <th>Iteration</th>
+            <th># of 6s</th>
+            <th># of Evens</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+function binomialCoefficient(n, k) {
+    if (k < 0 || k > n) return 0;
+    if (k === 0 || k === n) return 1;
+    k = Math.min(k, n - k);
+    let result = 1;
+    for (let i = 1; i <= k; i++) {
+        result *= (n - k + i);
+        result /= i;
+    }
+    return result;
+}
+
+function theoreticalProbabilityExactlySevenSixes(n) {
+    const k = 7;
+    const p = 1 / 6;
+    return binomialCoefficient(n, k) *
+           Math.pow(p, k) *
+           Math.pow(1 - p, n - k);
+}
+
+function runSimulation() {
+    const nDice = parseInt(document.getElementById("numDice").value);
+    const iterations = parseInt(document.getElementById("numIterations").value);
+
+    const tbody = document.querySelector("#resultsTable tbody");
+    tbody.innerHTML = "";
+
+    let countExactlySeven = 0;
+
+    for (let i = 0; i < iterations; i++) {
+        let sixes = 0;
+        let evens = 0;
+
+        for (let d = 0; d < nDice; d++) {
+            const roll = Math.floor(Math.random() * 6) + 1;
+            if (roll === 6) sixes++;
+            if (roll % 2 === 0) evens++;
+        }
+
+        if (sixes === 7) countExactlySeven++;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${i + 1}</td>
+            <td>${sixes}</td>
+            <td>${evens}</td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    document.getElementById("resultsTable").style.display = "table";
+
+    const empiricalProb = countExactlySeven / iterations;
+    const theoreticalProb = theoreticalProbabilityExactlySevenSixes(nDice);
+
+    document.getElementById("summary").innerHTML = `
+        <p><strong>Dice per roll:</strong> ${nDice}</p>
+        <p><strong>Iterations:</strong> ${iterations}</p>
+        <p><strong>Empirical P(exactly seven 6s):</strong> ${empiricalProb.toFixed(6)}</p>
+        <p><strong>Theoretical P(exactly seven 6s):</strong> ${theoreticalProb.toFixed(6)}</p>
+    `;
+}
+</script>
+
+</body>
+</html>
