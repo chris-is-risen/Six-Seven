@@ -114,9 +114,9 @@
 
         /* ---------------- Celebration GIF ---------------- */
         #celebrationGif {
-            top: 50000px;    /* distance from top of viewport */
-            left: 600px;   /* distance from left of viewport */
-            transform: none;
+            top: 50%;            /* center vertically */
+            left: 600px;          /* fixed horizontal offset */
+            transform: translateY(-50%); /* shift up by 50% of element height to center */
             display: none;
             cursor: grab;
         }
