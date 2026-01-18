@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Will you get Six-Seven?</title>
     
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comic+Relief&display=swap" rel="stylesheet">
@@ -333,6 +332,7 @@ function runSimulation() {
     tbody.innerHTML = "";
 
     let countExactlySeven = 0;
+    let totalEvensAcrossIterations = 0; // New variable to track total evens
 
     for (let i = 0; i < iterations; i++) {
         let sixes = 0;
@@ -345,6 +345,7 @@ function runSimulation() {
         }
 
         if (sixes === 7) countExactlySeven++;
+        totalEvensAcrossIterations += evens; // Accumulate even numbers
 
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -362,15 +363,15 @@ function runSimulation() {
     const theoreticalAtLeastOnce =
         1 - Math.pow(1 - theoreticalSingle, iterations);
 
+    // Updated Summary Display
     document.getElementById("summary").innerHTML = `
-        <p><strong>Dice per roll:</strong> ${nDice}</p>
-        <p><strong>Iterations:</strong> ${iterations}</p>
         <p><strong>Empirical P(exactly seven 6s at least once):</strong>
         ${empiricalProb.toFixed(6)}</p>
         <p><strong>Theoretical P(exactly seven 6s in a single iteration):</strong>
         ${theoreticalSingle.toFixed(6)}</p>
         <p><strong>Theoretical P(exactly seven 6s at least once across all iterations):</strong>
         ${theoreticalAtLeastOnce.toFixed(6)}</p>
+        <p><strong>Total Even #s across all iterations:</strong> ${totalEvensAcrossIterations}</p>
     `;
 
     if (countExactlySeven > 0) {
